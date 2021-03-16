@@ -103,6 +103,13 @@ var ASTNode = /** @class */ (function () {
         this.addAttribs(node);
         return this;
     };
+    ASTNode.prototype.addAttrField = function (node, fldType) {
+        var type = fldType || getFieldType(xml_utils_1.attribs(node).type, null);
+        this.prop('fieldName', "$" + xml_utils_1.attribs(node).name + ((xml_utils_1.attribs(node).use === 'required') ? '' : '?'))
+            .prop('fieldType', type);
+        this.addAttribs(node);
+        return this;
+    };
     Object.defineProperty(ASTNode.prototype, "attr", {
         get: function () {
             return this._attr;

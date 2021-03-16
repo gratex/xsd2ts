@@ -20,5 +20,6 @@ export interface IAttributes extends Node {
     ref: string;
     minOccurs: string;
     maxOccurs: string;
+    use: string;
 }
 export declare function attribs(node: Node): IAttributes;

@@ -26,6 +26,7 @@ export declare class ASTNode {
     named(name: string): ASTNode;
     addName(node: Node, prefix?: string): ASTNode;
     addField(node: Node, fldType?: string): this;
+    addAttrField(node: Node, fldType?: string): this;
     get attr(): any;
     addAttribs(n: Node): this;
     merge(other: ASTNode): ASTNode;

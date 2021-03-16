@@ -1,8 +1,9 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by eddyspreeuwers on 12/18/19.
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+// AR: added duplicate to sequence for 'all'
 var xml_utils_1 = require("./xml-utils");
 var parsing_1 = require("./parsing");
 function makeSchemaHandler(schemaName) {
@@ -11,7 +12,7 @@ function makeSchemaHandler(schemaName) {
 var fieldHandler = function (n) { return (xml_utils_1.attribs(n).type) ? parsing_1.astNode('Field').addField(n).prop('label4', 'fieldHandler') : null; };
 //const topFieldHandler: AstNodeFactory = (n) => /xs:/.test(attribs(n).type) ? astClass().addName(n, 'For').addFields(n) : null;
 var topFieldHandler = function (n) { return /xs:/.test(xml_utils_1.attribs(n).type) ? parsing_1.astNode('AliasType').addAttribs(n) : null; };
-var attrHandler = function (n) { return parsing_1.astNode('Field').addField(n); };
+var attrHandler = function (n) { return parsing_1.astNode('Field').addAttrField(n); };
 var arrayFldHandler = function (n) { return (xml_utils_1.attribs(n).type && xml_utils_1.attribs(n).maxOccurs === "unbounded") ? parsing_1.astNode('ArrField').addField(n).prop('label1', 'arrayFldHandler') : null; };
 var cmpFldHandler = function (n) { return parsing_1.astField().prop('label2', 'cmpFldHandler').addField(n, xml_utils_1.capFirst(xml_utils_1.attribs(n).name)); };
 var classHandler = function (n) { return (xml_utils_1.attribs(n).type) ? null : parsing_1.astClass(n).prop('label3', 'classHandler'); };
@@ -57,6 +58,7 @@ var XsdGrammar = /** @class */ (function () {
         var classType = new parsing_1.Terminal("complexType:ctype", classHandler);
         var attribute = new parsing_1.Terminal("attribute:attr", attrHandler);
         var sequence = new parsing_1.Terminal("sequence:seq");
+        var all = new parsing_1.Terminal("all");
         var choice = new parsing_1.Terminal("choice:Choice");
         // NonTerminals
         var REFGROUP = parsing_1.match(refGroup).labeled('REF_GROUP');
@@ -65,29 +67,38 @@ var XsdGrammar = /** @class */ (function () {
         var FLD_ELM = parsing_1.match(fieldElement).labeled('FIELD_ELM');
         var CHOICE = parsing_1.match(choice).children(REF_ELM, FIELDPROXY);
         var ARRFIELD = parsing_1.match(cmpFldElement, arrayFieldMerger).child(complexType).child(sequence).child(arrFldElement).labeled('ARRFIELD');
+        var ARRFIELD2 = parsing_1.match(cmpFldElement, arrayFieldMerger).child(complexType).child(all).child(arrFldElement).labeled('ARRFIELD2');
         var CMPFIELD = parsing_1.match(cmpFldElement, nestedClassMerger).child(complexType).child(sequence).children(FIELDPROXY).labeled('CMPFIELD');
-        var FIELD = parsing_1.oneOf(ARRFIELD, CMPFIELD, FLD_ELM, REFGROUP, REF_ELM).labeled('FIELD');
+        var CMPFIELD2 = parsing_1.match(cmpFldElement, nestedClassMerger).child(complexType).child(all).children(FIELDPROXY).labeled('CMPFIELD2');
+        var FIELD = parsing_1.oneOf(ARRFIELD, ARRFIELD2, CMPFIELD, CMPFIELD2, FLD_ELM, REFGROUP, REF_ELM).labeled('FIELD');
         FIELDPROXY.parslet = FIELD;
         var A_CLASS = parsing_1.match(classElement, childsMerger).child(complexType).children(ATTRIBUTE, CHOICE).labeled('A_CLASS');
         // element class
         var E_CLASS = parsing_1.match(classElement).child(complexType).child(sequence, childsMerger).children(FIELD).labeled('E_CLASS');
+        var E_CLASS2 = parsing_1.match(classElement).child(complexType).child(all, childsMerger).children(FIELD).labeled('E_CLASS2');
         // group class
         var G_CLASS = parsing_1.match(attributeGroup).children(parsing_1.match(attribute)).labeled('G_CLASS');
         // coplex type class
         var SEQUENCE = parsing_1.match(sequence, childsMerger).children(FIELD).labeled('SEQUENCE');
+        var ALL = parsing_1.match(all, childsMerger).children(FIELD).labeled('ALL');
         var CCONTENT = parsing_1.match(complexContent).child(extension).child(sequence, childsMerger).children(FIELD).labeled('CCONTENT');
+        var CCONTENT2 = parsing_1.match(complexContent).child(extension).child(all, childsMerger).children(FIELD).labeled('CCONTENT2');
         var R_CLASS = parsing_1.match(classType, childsMerger).children(REFGROUP, ATTRIBUTE).labeled('R_CLASS');
-        var C_CLASS = parsing_1.match(classType).childIsOneOf(SEQUENCE, CCONTENT).labeled('C_CLASS');
+        // const C_CLASS  = match(classType).childIsOneOf(SEQUENCE, ALL, CCONTENT, CCONTENT2).labeled('C_CLASS');
+        // AR: attributes with seq ! TODO: now we allow to maix anyof them, but we should maybe allow only attribute with one other
+        var C_CLASS = parsing_1.match(classType, customMerger).children(SEQUENCE, ALL, CCONTENT, CCONTENT2, ATTRIBUTE).labeled('C_CLASS');
         //extended class
         var X_CLASS = parsing_1.match(classType).child(complexContent).child(extension).child(sequence, childsMerger).children(FIELD).labeled('X_CLASS');
+        var X_CLASS2 = parsing_1.match(classType).child(complexContent).child(extension).child(all, childsMerger).children(FIELD).labeled('X_CLASS2');
         //const R_CLASS  = match(classType).child(refGroup);
         var S_CLASS = parsing_1.match(classType).empty().labeled('EMPTY_CLASS'); //simple empty class
         var F_CLASS = parsing_1.match(topFldElement).labeled('F_CLASS');
         var N_GROUP = parsing_1.match(namedGroup).child(sequence, childsMerger).children(FIELD).labeled('N_GROUP');
+        var N_GROUP2 = parsing_1.match(namedGroup).child(all, childsMerger).children(FIELD).labeled('N_GROUP2');
         var ENUMELM = parsing_1.match(enumElement, enumMerger).child(simpleType).child(strRestriction).children(parsing_1.match(enumeration)).labeled('ENUMTYPE');
         var ENUMTYPE = parsing_1.match(enumType, enumMerger).child(strRestriction).children(parsing_1.match(enumeration)).labeled('ENUMTYPE');
         var ALIASTYPE = parsing_1.match(enumElement, typeMerger).child(simpleType).child(intRestriciton).labeled('ALIAS');
-        var TYPES = parsing_1.oneOf(ALIASTYPE, S_CLASS, ENUMELM, ENUMTYPE, E_CLASS, C_CLASS, X_CLASS, N_GROUP, F_CLASS, G_CLASS, A_CLASS, R_CLASS);
+        var TYPES = parsing_1.oneOf(ALIASTYPE, S_CLASS, ENUMELM, ENUMTYPE, E_CLASS, E_CLASS2, C_CLASS, X_CLASS, X_CLASS2, N_GROUP, N_GROUP2, F_CLASS, G_CLASS, A_CLASS, R_CLASS);
         var SCHEMA = parsing_1.match(schema, childsMerger).children(TYPES);
         var result = SCHEMA.parse(node, '');
         return result;
@@ -95,3 +106,16 @@ var XsdGrammar = /** @class */ (function () {
     return XsdGrammar;
 }());
 exports.XsdGrammar = XsdGrammar;
+// AR: ur change of gramer does not merge corrcetly attributes with all/sequence
+function customMerger(r1, r2) {
+    r1.children = r2.children.reduce(function (arr, child) {
+        if (child.nodeType === "all" || child.nodeType === "sequence") {
+            arr = arr.concat(child.children);
+        }
+        else {
+            arr.push(child);
+        }
+        return arr;
+    }, []);
+    return r1;
+}

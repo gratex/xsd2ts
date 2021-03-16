@@ -63,7 +63,7 @@ function capFirst(s) {
 }
 exports.capFirst = capFirst;
 function attribs(node) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     var attr = (_a = node) === null || _a === void 0 ? void 0 : _a.attributes;
     //console.log('getNamedItem', attr);
     var result = {
@@ -73,7 +73,8 @@ function attribs(node) {
         value: (_e = attr.getNamedItem('value')) === null || _e === void 0 ? void 0 : _e.value,
         ref: (_f = attr.getNamedItem('ref')) === null || _f === void 0 ? void 0 : _f.value,
         minOccurs: (_g = attr.getNamedItem('minOccurs')) === null || _g === void 0 ? void 0 : _g.value,
-        maxOccurs: (_h = attr.getNamedItem('maxOccurs')) === null || _h === void 0 ? void 0 : _h.value
+        maxOccurs: (_h = attr.getNamedItem('maxOccurs')) === null || _h === void 0 ? void 0 : _h.value,
+        use: (_j = attr.getNamedItem('use')) === null || _j === void 0 ? void 0 : _j.value,
     };
     return result;
 }

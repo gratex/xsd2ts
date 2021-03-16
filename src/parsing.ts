@@ -120,6 +120,16 @@ export class ASTNode {
         return this;
     }
 
+    public addAttrField(node: Node, fldType?: string) {
+
+        let type = fldType || getFieldType(attribs(node).type, null);
+
+        this.prop('fieldName', "$" + attribs(node).name + ((attribs(node).use === 'required') ? '' : '?'))
+            .prop('fieldType', type);
+        this.addAttribs(node);
+        return this;
+    }
+
 
     get attr():any {
         return this._attr;

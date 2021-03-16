@@ -86,8 +86,8 @@ function addClassForASTNode(fileDef, astNode, indent) {
         if (typeParts.length === 2) {
             xmlns = typeParts[0];
             //fldType = typeParts[1];
-            // AR: ignore 't'
-            xmlns !== 't' && addNewImport(fileDef, xmlns);
+            // AR: ignore 't' & xsd
+            xmlns !== 't' && xmlns !== 'xsd' && addNewImport(fileDef, xmlns);
         }
         // whenever the default namespace (xmlns) is defined and not the xsd namspace
         // the types without namsespace must be imported and thus prefixed with a ts namespace
