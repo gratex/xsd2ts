@@ -1,4 +1,3 @@
-/// <reference types="lodash" />
 /**
  * Created by Eddy Spreeuwers at 11 march 2018
  */

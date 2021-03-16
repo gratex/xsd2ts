@@ -86,7 +86,8 @@ function addClassForASTNode(fileDef, astNode, indent) {
         if (typeParts.length === 2) {
             xmlns = typeParts[0];
             //fldType = typeParts[1];
-            addNewImport(fileDef, xmlns);
+            // AR: ignore 't'
+            xmlns !== 't' && addNewImport(fileDef, xmlns);
         }
         // whenever the default namespace (xmlns) is defined and not the xsd namspace
         // the types without namsespace must be imported and thus prefixed with a ts namespace
@@ -145,8 +146,8 @@ var ClassGenerator = /** @class */ (function () {
         //store namspaces
         namespaces.xsd = xsdNs;
         namespaces.default = defNs;
-        if (defNs && (defNs !== XSD_NS))
-            addNewImport(fileDef, XMLNS);
+        // AR: commented out
+        // if (defNs && (defNs !== XSD_NS)) addNewImport(fileDef, XMLNS);
         Object.keys(groups).forEach(function (key) { return delete (groups[key]); });
         xml_utils_1.log('AST:\n', JSON.stringify(ast, null, 3));
         // create schema class
@@ -262,16 +263,17 @@ var ClassGenerator = /** @class */ (function () {
                     c.getPropertiesAndConstructorParameters().forEach(function (prop) {
                         _this.addProtectedPropToClass(classDef_1, prop);
                     });
-                    var constructor = classDef_1.addMethod({ name: 'constructor' });
-                    constructor.scope = "protected";
-                    constructor.addParameter({ name: "props?", type: c.name });
-                    constructor.onWriteFunctionBody = function (writer) {
-                        if (c.extendsTypes.length) {
-                            writer.write("super();\n");
-                        }
-                        writer.write("this[\"@class\"] = \"" + _this.classPrefix + c.name + "\";\n");
-                        writer.write('(<any>Object).assign(this, <any> props);');
-                    };
+                    // AR: no constructor
+                    // const constructor = classDef.addMethod({name: 'constructor'});
+                    // constructor.scope = "protected";
+                    // constructor.addParameter({name: "props?", type: c.name});
+                    // constructor.onWriteFunctionBody = (writer) => {
+                    //     if (c.extendsTypes.length) {
+                    //         writer.write(`super();\n`);
+                    //     }
+                    //     writer.write(`this["@class"] = "${this.classPrefix}${c.name}";\n`);
+                    //     writer.write('(<any>Object).assign(this, <any> props);');
+                    // };
                 }
             });
             // console.log('depth:', depth);
